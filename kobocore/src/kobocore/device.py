@@ -10,11 +10,20 @@ from kobocore.firmware import FirmwareVersion, parse_version
 
 VOLUME_LABEL = "KOBOeReader"
 
+# Anything here is installed by Nickel on the next eject/reboot (ROADMAP H5).
+PENDING_UPDATE_PATHS = (
+    Path(".kobo/KoboRoot.tgz"),
+    Path(".kobo/Kobo.tgz"),
+    Path(".kobo/update.tar"),
+    Path(".kobo/upgrade"),
+)
+
 
 class DeviceInfo(NamedTuple):
     mount: Path
     serial: str
     firmware: FirmwareVersion
+    device_id: str = ""
 
     @property
     def serial_prefix(self) -> str:
@@ -61,6 +70,26 @@ def parse_version_file(content: str) -> tuple[str, FirmwareVersion]:
     return fields[0], parse_version(fields[2])
 
 
+def parse_device_id(content: str) -> str:
+    """Field 5 of `.kobo/version`: the id Kobo's update API knows the model by.
+
+    >>> parse_device_id("N428X,4.9.77,4.46.23852,4.9.77,4.9.77,00000000-0390")
+    '00000000-0390'
+    >>> parse_device_id("N428X,4.1.15,4.38.23038")
+    ''
+    """
+    fields = content.strip().split(",")
+    return fields[5] if len(fields) > 5 else ""
+
+
 def read_device(mount: Path) -> DeviceInfo:
-    serial, fw = parse_version_file((mount / ".kobo" / "version").read_text())
-    return DeviceInfo(mount=mount, serial=serial, firmware=fw)
+    content = (mount / ".kobo" / "version").read_text()
+    serial, fw = parse_version_file(content)
+    return DeviceInfo(
+        mount=mount, serial=serial, firmware=fw, device_id=parse_device_id(content)
+    )
+
+
+def pending_updates(mount: Path) -> list[Path]:
+    """Update packages Nickel will install on the next eject (relative paths)."""
+    return [rel for rel in PENDING_UPDATE_PATHS if (mount / rel).exists()]
