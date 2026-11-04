@@ -81,6 +81,9 @@ def _copy_sqlite(src: Path, dst: Path) -> None:
     target = sqlite3.connect(dst)
     try:
         source.backup(target)
+        # The copy inherits WAL mode from Nickel's DB; switch it to a rollback
+        # journal so later read-only opens (verify, stats) create no side files.
+        target.execute("PRAGMA journal_mode=DELETE")
     finally:
         target.close()
         source.close()
@@ -113,6 +116,13 @@ def read_db_version(db: Path) -> int | None:
     return int(row[0]) if row else None
 
 
+def _check_databases(mount: Path, rels: list[Path]) -> None:
+    """Fail before copying anything if a database has unmerged WAL changes."""
+    for rel in rels:
+        if is_sqlite(rel):
+            open_readonly(mount / rel).close()  # raises UnflushedWalError
+
+
 def take_snapshot(
     device: DeviceInfo,
     hardware: str,
@@ -121,8 +131,21 @@ def take_snapshot(
     now: datetime,
 ) -> SnapshotResult:
     rels = select_files(device.mount, opts)
+    _check_databases(device.mount, [r for r in rels if r == NICKEL_DB])
     final = backup_root / device.serial / snapshot_name(now)
     work = final.with_name(final.name + PARTIAL)
+    try:
+        manifest = _fill(work, device, hardware, rels, now)
+    except BaseException:
+        shutil.rmtree(work, ignore_errors=True)
+        raise
+    work.rename(final)
+    return SnapshotResult(final, manifest)
+
+
+def _fill(
+    work: Path, device: DeviceInfo, hardware: str, rels: list[Path], now: datetime
+) -> Manifest:
     files_dir = work / "device"
     files_dir.mkdir(parents=True)
     databases: list[str] = []
@@ -144,8 +167,7 @@ def take_snapshot(
     if (files_dir / NICKEL_DB).is_file():
         stats = export_stats(files_dir / NICKEL_DB, work / "stats")
         logger.info("exported stats: %d books, %d events", stats.books, stats.events)
-    work.rename(final)
-    return SnapshotResult(final, manifest)
+    return manifest
 
 
 def latest_snapshot(backup_root: Path, serial: str) -> Path | None:

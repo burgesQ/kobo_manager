@@ -6,8 +6,11 @@ import pytest
 BOOK_ID = "file:///mnt/onboard/Kerr, Philip/La trilogie berlinoise.kepub.epub"
 
 
-def make_nickel_db(path: Path, db_version: int = 176) -> Path:
-    """Tiny `KoboReader.sqlite` with the tables and columns vault relies on."""
+def make_nickel_db(path: Path, db_version: int = 176, wal: bool = True) -> Path:
+    """Tiny `KoboReader.sqlite` with the tables and columns vault relies on.
+
+    WAL journal mode by default, like the real Nickel DB.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(path)
     con.executescript("""
@@ -43,7 +46,9 @@ def make_nickel_db(path: Path, db_version: int = 176) -> Path:
         ],
     )  # fmt: skip
     con.commit()
-    con.close()
+    if wal:
+        con.execute("PRAGMA journal_mode=WAL")
+    con.close()  # last connection: SQLite checkpoints and removes -wal/-shm
     return path
 
 

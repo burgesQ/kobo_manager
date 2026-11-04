@@ -75,8 +75,12 @@ def _in_sidecar(rel: PurePosixPath) -> bool:
     return any(part.endswith(".sdr") for part in rel.parts[:-1])
 
 
+# SQLite side files: transient, and copying them next to a backup-API copy is wrong.
+SQLITE_SIDE_SUFFIXES = ("-wal", "-shm", "-journal")
+
+
 def is_selected(rel: PurePosixPath, opts: ScopeOptions) -> bool:
-    if _under(rel, NEVER):
+    if _under(rel, NEVER) or rel.name.endswith(SQLITE_SIDE_SUFFIXES):
         return False
     if _under(rel, KOBO_BOOKS):
         return opts.with_books

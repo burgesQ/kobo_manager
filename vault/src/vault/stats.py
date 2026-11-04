@@ -44,8 +44,24 @@ class StatsResult(NamedTuple):
     events: int
 
 
+class UnflushedWalError(RuntimeError):
+    """The database has uncheckpointed changes in its ``-wal`` file."""
+
+
 def open_readonly(db: Path) -> sqlite3.Connection:
-    con = sqlite3.connect(f"{db.resolve().as_uri()}?mode=ro", uri=True)
+    """Open ``db`` without creating or touching any file next to it.
+
+    Nickel keeps `KoboReader.sqlite` in WAL mode: even a ``mode=ro`` connection would
+    create ``-wal``/``-shm`` files on the device. ``immutable=1`` never does, but it
+    ignores the ``-wal`` file, so a non-empty one (changes not yet merged) is refused.
+    """
+    wal = db.with_name(db.name + "-wal")
+    if wal.is_file() and wal.stat().st_size > 0:
+        raise UnflushedWalError(
+            f"{wal} holds changes not merged into the database yet: "
+            "let Nickel close it (eject, wait for the home screen, reconnect)"
+        )
+    con = sqlite3.connect(f"{db.resolve().as_uri()}?mode=ro&immutable=1", uri=True)
     con.row_factory = sqlite3.Row
     return con
 

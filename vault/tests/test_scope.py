@@ -30,8 +30,11 @@ def test_default_scope_keeps_user_data(tmp_path: Path, make_kobo) -> None:
 def test_default_scope_skips_books_caches_and_koreader(
     tmp_path: Path, make_kobo
 ) -> None:
-    files = _selected(make_kobo(tmp_path, populated=True))
+    mount = make_kobo(tmp_path, populated=True)
+    (mount / ".kobo/KoboReader.sqlite-shm").write_bytes(b"")
+    files = _selected(mount)
     for rel in [
+        ".kobo/KoboReader.sqlite-shm",
         ".kobo/dict/dicthtml-fr.zip",
         ".kobo/kepub/store-book",
         ".kobo-images/cover.parsed",

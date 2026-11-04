@@ -9,6 +9,7 @@ from kobocore.state import Phase, PipelineState
 from vault.cli import main
 from vault.exit_codes import (
     PHASE_ERROR,
+    PROCESSING_ERROR,
     SNAPSHOT_NOT_FOUND,
     SUCCESS,
     VERIFY_FAILED,
@@ -130,3 +131,35 @@ def test_export_stats_to_output_dir(tmp_path: Path, make_kobo) -> None:
     rc = main(["export-stats", "--mount", str(mount), "--output", str(out)])
     assert rc == SUCCESS
     assert (out / "books.csv").is_file()
+
+
+def _side_files(root: Path) -> list[str]:
+    suffixes = ("-wal", "-shm", "-journal")
+    return sorted(str(p) for p in root.rglob("*") if p.name.endswith(suffixes))
+
+
+def test_wal_database_leaves_no_side_files(tmp_path: Path, make_kobo) -> None:
+    mount = make_kobo(tmp_path, populated=True)  # WAL-mode DB, like a real Kobo
+    backups = tmp_path / "bk"
+    assert _snapshot(mount, backups) == SUCCESS
+    assert _verify(mount, backups) == SUCCESS
+    out = tmp_path / "out"
+    assert main(["export-stats", "--mount", str(mount), "--output", str(out)]) == 0
+    assert _side_files(mount) == []
+    assert _side_files(backups) == []
+
+
+def test_snapshot_copy_uses_rollback_journal(tmp_path: Path, make_kobo) -> None:
+    mount = make_kobo(tmp_path, populated=True)
+    _snapshot(mount, tmp_path / "bk")
+    copy = _only_snapshot(tmp_path / "bk") / "device/.kobo/KoboReader.sqlite"
+    assert copy.read_bytes()[18:20] == b"\x01\x01"  # 2,2 would mean WAL
+
+
+def test_snapshot_refuses_unflushed_wal(tmp_path: Path, make_kobo) -> None:
+    mount = make_kobo(tmp_path, populated=True)
+    (mount / ".kobo/KoboReader.sqlite-wal").write_bytes(b"uncheckpointed" * 64)
+    assert _snapshot(mount, tmp_path / "bk") == PROCESSING_ERROR
+    assert not (tmp_path / "bk" / SERIAL).exists() or not any(
+        (tmp_path / "bk" / SERIAL).iterdir()
+    )

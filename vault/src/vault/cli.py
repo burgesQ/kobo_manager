@@ -32,7 +32,7 @@ from vault.snapshot import (
     take_snapshot,
     verify_snapshot,
 )
-from vault.stats import export_stats
+from vault.stats import UnflushedWalError, export_stats
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ def _snapshot(
         result = take_snapshot(
             device, args.hardware.key, args.backup_root, opts, datetime.now(UTC)
         )
-    except (OSError, sqlite3.Error) as exc:
+    except (OSError, sqlite3.Error, UnflushedWalError) as exc:
         logger.error("snapshot failed: %s", exc)
         raise CLIError(PROCESSING_ERROR) from exc
     logger.info(
@@ -156,7 +156,7 @@ def _export_stats(
         return SUCCESS
     try:
         result = export_stats(device.mount / NICKEL_DB, out)
-    except (OSError, sqlite3.Error) as exc:
+    except (OSError, sqlite3.Error, UnflushedWalError) as exc:
         logger.error("export failed: %s", exc)
         raise CLIError(PROCESSING_ERROR) from exc
     logger.info("exported %d books, %d events to %s", result.books, result.events, out)
