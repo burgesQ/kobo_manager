@@ -50,7 +50,7 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 - [x] **K3** Pipeline state machine persisted in `$XDG_STATE_HOME/kobo_manager/<serial>.json`
 - [x] **K4** Shared `ColorFormatter` logging + `--loglevel` / `--verbose`
 - [x] **K5** Firmware version parsing + `is_mod_safe` guard (doctested)
-- [ ] **K6** (S) **Hardware registry** `kobocore.hardware`: `Hardware` (key, name, serial
+- [x] **K6** (S) **Hardware registry** `kobocore.hardware`: `Hardware` (key, name, serial
   prefixes, device id, codename, platform, KCC profile, colour), `DEFAULT_HARDWARE =
   "libra-colour"`, alias normalisation (`LibraColour`, `LibraColor`, `KoLC`…). Covers the
   N428B revision. `--hardware` on every CLI; mismatch with the mounted device →
@@ -58,7 +58,7 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 - [ ] **K7** (S) Detect that Nickel is not mid-sync / the volume is mounted read-write
 - [ ] **K8** (M) `Manifest` dataclass shared by vault: file list, sha256, sizes, firmware,
   `DbVersion`, hardware key at backup time
-- [ ] **K9** (S) **Shared CLI helpers** `kobocore.cli`: `CLIError`, `add_common_args()`
+- [x] **K9** (S) **Shared CLI helpers** `kobocore.cli`: `CLIError`, `add_common_args()`
   (`--mount`, `--dry-run`, `--hardware`, logging), `resolve_device()`, `check_phase()` —
   removes the four copies in `vault|unmod|flasher|modder`
 - [ ] **K10** (M) **Mod compatibility matrix** `kobocore/data/mods.toml` (stdlib
