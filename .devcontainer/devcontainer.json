@@ -1,0 +1,25 @@
+{
+  "name": "kobo_manager",
+  "image": "ghcr.io/burgesq/kobo_manager:latest",
+  "postCreateCommand": "uv sync --frozen",
+  // The image ships a frozen copy of the code in /app; put the workspace venv first
+  // so the CLIs run the code being edited.
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/.venv/bin:${containerEnv:PATH}"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "ms-python.black-formatter",
+        "ms-python.mypy-type-checker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "python.testing.pytestArgs": [".", "-m", "not device"]
+      }
+    }
+  }
+}
