@@ -219,12 +219,19 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 
 ## Execution order
 
-1. **K9 + K6** shared CLI helpers and `--hardware`
-2. **K8, K11, V1–V6, S1, S3, V12** — snapshot/verify on 4.46.
-   **Nothing writes to the device before a verified backup.**
-3. **K10 → M1 → M9 → M11** — NickelMenu 0.6.0 + wizard (restores the KOReader/Plato
-   launchers broken by 4.46), then SSH
-4. unmod (U7) / flasher 4.x / restore / M10 KOReader wizard / catalogue / F6 `watch`
+**Theory first, practice last.** Every write path (unmod, flasher, restore, modder) is
+built and tested against fake device trees only. Against the real Kobo, only read-only
+commands run (`vault snapshot|verify|export-stats`, `--dry-run`). The real run — unmod,
+flash, restore, mods — happens in one go once the whole pipeline is implemented.
+
+1. ✅ **K9 + K6** shared CLI helpers and `--hardware`
+2. ✅ **K8, K11, V1–V6, S1, S3** — snapshot/verify (first real backup taken on 4.46,
+   read-only)
+3. **K10 → M1 → M9 → M11** — mod matrix, NickelMenu 0.6.0 + wizard (fixes the
+   KOReader/Plato launchers broken by 4.46), SSH — fake devices only
+4. **U1–U7 → F1–F6 → V7–V11, V12** — unmod, flasher 4.x + `watch`, restore — fake devices only
+5. **M10, M12–M15** — KOReader wizard, catalogue
+6. 🎯 **Practice**: real run of the safe path on the device
 
 ---
 

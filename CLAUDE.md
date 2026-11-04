@@ -28,6 +28,10 @@ vault snapshot → vault verify → unmod → flasher → vault restore → modd
 
 ## Hard rules (safety)
 
+- **No writes to the real Kobo until the whole pipeline is implemented** ("theory first,
+  practice last"). Write paths are tested on fake device trees; against the mounted
+  device run only read-only commands or `--dry-run`. See ROADMAP → Execution order.
+
 - **Never flash firmware 5.x / 6.x.** `kobocore.firmware.MAX_SAFE_MAJOR = 4`; the new
   line is monitored only (`flasher watch`). See ROADMAP H1.
 - **Never stage a package while an update is pending** (`.kobo/KoboRoot.tgz`,
