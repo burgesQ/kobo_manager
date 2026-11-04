@@ -83,7 +83,8 @@ Kobo, so they only make sense locally.
 | Command | State |
 |---------|-------|
 | `vault snapshot` / `verify` / `export-stats` | ✅ implemented |
-| `vault restore`, `unmod`, `flasher`, `modder` | 🚧 scaffolding (exit `NOT_IMPLEMENTED`, 64) |
+| `modder list` / `install` / `wizard nickelmenu` / `ssh` | ✅ implemented, **not yet run on the device** |
+| `vault restore`, `unmod`, `flasher` | 🚧 scaffolding (exit `NOT_IMPLEMENTED`, 64) |
 
 See `ROADMAP.md` for the backlog and execution order.
 
@@ -107,6 +108,25 @@ SQLite databases are copied through the SQLite backup API, read-only.
   `*.sdr` sidecars.
 - `--backup-root` or `$KOBO_BACKUP_ROOT` changes the destination.
 - Every CLI takes `--hardware MODEL` (default `libra-colour`).
+
+## Modding
+
+```bash
+uv run modder list                                   # catalogue vs installed, per firmware
+uv run modder install nickelmenu --dry-run           # pinned v0.6.0, sha256-checked
+uv run modder wizard nickelmenu                      # interactive NickelMenu config
+uv run modder wizard nickelmenu --non-interactive    # replay saved answers
+uv run modder ssh status | enable | disable | keys
+```
+
+- The catalogue (`kobocore/src/kobocore/data/mods.toml`) lists every mod with the
+  firmware lines it supports, its paths and how it uninstalls.
+- `install` stages a `KoboRoot.tgz` (downloaded or `--package`, a browser-renamed
+  `.tar` is fine) after checking its content; it refuses when an update is pending.
+- The wizard writes one `.adds/nm/kobo_manager_<group>` file per feature group and
+  moves old config files to `.adds/kobo_manager/nm-disabled/`. Answers and personal
+  data (owner message) live in `~/.config/kobo_manager/modder.toml`, never in the repo.
+- Every write needs the pipeline at `restored` and honours `--dry-run`.
 
 ## Development
 
