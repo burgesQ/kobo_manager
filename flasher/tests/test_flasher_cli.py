@@ -3,7 +3,12 @@ from pathlib import Path
 import pytest
 
 from flasher.cli import main
-from flasher.exit_codes import DEVICE_NOT_FOUND, NOT_IMPLEMENTED, PHASE_ERROR
+from flasher.exit_codes import (
+    DEVICE_NOT_FOUND,
+    HARDWARE_MISMATCH,
+    NOT_IMPLEMENTED,
+    PHASE_ERROR,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -19,3 +24,10 @@ def test_runs_against_fake_device(tmp_path: Path, make_kobo) -> None:
     mount = make_kobo(tmp_path)
     rc = main([] + ["--mount", str(mount), "--dry-run"])
     assert rc in (NOT_IMPLEMENTED, PHASE_ERROR)
+
+
+def test_hardware_mismatch(tmp_path: Path, make_kobo) -> None:
+    mount = make_kobo(tmp_path, serial="N999XXXXXXXXX")
+    assert (
+        main(["--mount", str(mount), "--hardware", "libra-colour"]) == HARDWARE_MISMATCH
+    )

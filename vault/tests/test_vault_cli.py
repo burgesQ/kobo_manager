@@ -3,7 +3,12 @@ from pathlib import Path
 import pytest
 
 from vault.cli import main
-from vault.exit_codes import DEVICE_NOT_FOUND, NOT_IMPLEMENTED, PHASE_ERROR
+from vault.exit_codes import (
+    DEVICE_NOT_FOUND,
+    HARDWARE_MISMATCH,
+    NOT_IMPLEMENTED,
+    PHASE_ERROR,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -19,3 +24,14 @@ def test_runs_against_fake_device(tmp_path: Path, make_kobo) -> None:
     mount = make_kobo(tmp_path)
     rc = main(["snapshot"] + ["--mount", str(mount), "--dry-run"])
     assert rc in (NOT_IMPLEMENTED, PHASE_ERROR)
+
+
+def test_hardware_mismatch(tmp_path: Path, make_kobo) -> None:
+    mount = make_kobo(tmp_path, serial="N999XXXXXXXXX")
+    assert main(["snapshot", "--mount", str(mount)]) == HARDWARE_MISMATCH
+
+
+def test_hardware_alias_accepted(tmp_path: Path, make_kobo) -> None:
+    mount = make_kobo(tmp_path)
+    rc = main(["snapshot", "--mount", str(mount), "--hardware", "KoLC"])
+    assert rc == NOT_IMPLEMENTED
