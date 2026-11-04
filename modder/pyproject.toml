@@ -1,0 +1,19 @@
+[project]
+name = "modder"
+version = "0.1.0"
+description = "Install KOReader, NickelMenu, screensavers and other mods"
+requires-python = ">=3.12"
+dependencies = ["kobocore", "shtab>=1.7"]
+
+[project.scripts]
+modder = "modder.main:run"
+
+[tool.uv.sources]
+kobocore = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/modder"]

@@ -1,0 +1,19 @@
+[project]
+name = "flasher"
+version = "0.1.0"
+description = "Fetch, verify and stage an official Kobo firmware (4.x only)"
+requires-python = ">=3.12"
+dependencies = ["kobocore", "shtab>=1.7"]
+
+[project.scripts]
+flasher = "flasher.main:run"
+
+[tool.uv.sources]
+kobocore = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/flasher"]

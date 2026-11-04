@@ -1,0 +1,19 @@
+[project]
+name = "unmod"
+version = "0.1.0"
+description = "Remove NickelMenu, KFMon and patches before a firmware update"
+requires-python = ">=3.12"
+dependencies = ["kobocore", "shtab>=1.7"]
+
+[project.scripts]
+unmod = "unmod.main:run"
+
+[tool.uv.sources]
+kobocore = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/unmod"]

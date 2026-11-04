@@ -1,0 +1,43 @@
+[project]
+name = "kobo-manager"
+version = "0.1.0"
+description = "CLI suite to back up, un-mod, flash, restore and re-mod a Kobo e-reader"
+requires-python = ">=3.12"
+dependencies = ["kobocore", "vault", "unmod", "flasher", "modder"]
+
+[tool.uv.workspace]
+members = ["kobocore", "vault", "unmod", "flasher", "modder"]
+
+[tool.uv.sources]
+kobocore = { workspace = true }
+vault = { workspace = true }
+unmod = { workspace = true }
+flasher = { workspace = true }
+modder = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+    "black>=24",
+    "isort>=5",
+    "mypy>=1.11",
+]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+known_first_party = ["kobocore", "vault", "unmod", "flasher", "modder"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint.isort]
+known-first-party = ["kobocore", "vault", "unmod", "flasher", "modder"]
+
+[tool.mypy]
+strict = true
+mypy_path = ["kobocore/src", "vault/src", "unmod/src", "flasher/src", "modder/src"]
