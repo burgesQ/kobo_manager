@@ -117,9 +117,9 @@ the device is a cache — the irreplaceable data is **reading stats and progress
 
 ## CI / DevOps
 
-- [ ] **CI1** Device tests marked `@pytest.mark.device`, never run in CI
+- [x] **CI1** Device tests marked `@pytest.mark.device`, never run in CI
 - [ ] **CI2** Fake-Kobo fixture tree with a real (tiny) `KoboReader.sqlite` schema for V9 tests
-- [ ] **CI3** Lint is a real gate from day one (no `|| true`)
+- [x] **CI3** Lint is a real gate from day one (no `|| true`)
 - [ ] **CI4** Coverage threshold gate
 
 ## Code Quality
