@@ -7,8 +7,10 @@ from kobocore.exit_codes import (
     NOT_IMPLEMENTED,
     PHASE_ERROR,
     PROCESSING_ERROR,
+    SNAPSHOT_NOT_FOUND,
     SUCCESS,
     UNSAFE_FIRMWARE,
+    VERIFY_FAILED,
 )
 
 __all__ = [
@@ -18,6 +20,8 @@ __all__ = [
     "NOT_IMPLEMENTED",
     "PHASE_ERROR",
     "PROCESSING_ERROR",
+    "SNAPSHOT_NOT_FOUND",
     "SUCCESS",
     "UNSAFE_FIRMWARE",
+    "VERIFY_FAILED",
 ]

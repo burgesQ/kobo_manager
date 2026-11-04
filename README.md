@@ -80,8 +80,33 @@ Kobo, so they only make sense locally.
 
 ## Status
 
-Scaffolding only: CLIs parse arguments, detect the device and enforce phase order, then
-exit with `NOT_IMPLEMENTED` (64). See `ROADMAP.md`.
+| Command | State |
+|---------|-------|
+| `vault snapshot` / `verify` / `export-stats` | ✅ implemented |
+| `vault restore`, `unmod`, `flasher`, `modder` | 🚧 scaffolding (exit `NOT_IMPLEMENTED`, 64) |
+
+See `ROADMAP.md` for the backlog and execution order.
+
+## Backing up
+
+```bash
+uv run vault snapshot --dry-run   # what would be copied, and how much
+uv run vault snapshot             # ~/kobo-backups/<serial>/<UTC timestamp>/
+uv run vault verify               # re-hash + PRAGMA integrity_check, unlocks unmod
+uv run vault export-stats --output ./stats
+```
+
+A snapshot holds `device/` (copied files, same layout as the device), `stats/`
+(`books` and `events` as CSV + JSON) and `manifest.json` (sha256 of every copy).
+SQLite databases are copied through the SQLite backup API, read-only.
+
+- Default scope: `.kobo/` (Nickel DB, settings, screensavers), `fonts/`, `icons/`,
+  exported annotations/notebooks, `screen_*.png`, NickelMenu/KFMon/NickelClock/Plato
+  configs, Calibre device files. Dictionaries, caches and mod binaries are skipped.
+- `--with-books`: also copy books. `--with-koreader`: KOReader settings, stats and
+  `*.sdr` sidecars.
+- `--backup-root` or `$KOBO_BACKUP_ROOT` changes the destination.
+- Every CLI takes `--hardware MODEL` (default `libra-colour`).
 
 ## Development
 

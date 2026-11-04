@@ -56,7 +56,7 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
   N428B revision. `--hardware` on every CLI; mismatch with the mounted device →
   `HARDWARE_MISMATCH` exit code.
 - [ ] **K7** (S) Detect that Nickel is not mid-sync / the volume is mounted read-write
-- [ ] **K8** (M) `Manifest` dataclass shared by vault: file list, sha256, sizes, firmware,
+- [x] **K8** (M) `Manifest` dataclass shared by vault: file list, sha256, sizes, firmware,
   `DbVersion`, hardware key at backup time
 - [x] **K9** (S) **Shared CLI helpers** `kobocore.cli`: `CLIError`, `add_common_args()`
   (`--mount`, `--dry-run`, `--hardware`, logging), `resolve_device()`, `check_phase()` —
@@ -64,25 +64,25 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 - [ ] **K10** (M) **Mod compatibility matrix** `kobocore/data/mods.toml` (stdlib
   `tomllib`): per mod → firmware lines, launcher, install paths, uninstall method, upstream
   repo, `experimental` flag. Single source of truth for `unmod`, `modder`, `flasher watch`.
-- [ ] **K11** (S) Pending-update detector (H5) + `.kobo/version` field 5 (device id) parsing
+- [x] **K11** (S) Pending-update detector (H5) + `.kobo/version` field 5 (device id) parsing
 
 ## vault (backup / verify / restore / export)
 
 ### Short-term (high priority)
 
-- [ ] **V1** `snapshot` — timestamped copy into `~/kobo-backups/<serial>/<iso-date>/`
+- [x] **V1** `snapshot` — timestamped copy into `~/kobo-backups/<serial>/<iso-date>/`
   (books excluded by default, `--with-books` to include). Scope:
   `.kobo/` (DBs, conf, screensaver), `fonts/`, `icons/`, `Exported Annotations/`,
   `Exported Notebooks/`, `.reading-states/`, `screen_*.png`, `.adds/nm/`,
   `.adds/kfmon/config/`, `.adds/nickelclock/settings.ini`, `.adds/plato/Settings.toml`
-- [ ] **V2** Consistent SQLite copies via the `sqlite3` backup API (not a raw file copy) for
+- [x] **V2** Consistent SQLite copies via the `sqlite3` backup API (not a raw file copy) for
   `.kobo/KoboReader.sqlite`
-- [ ] **V3** (optional, `--with-koreader`) KOReader state: `.adds/koreader/settings/`,
+- [x] **V3** (optional, `--with-koreader`) KOReader state: `.adds/koreader/settings/`,
   `settings.reader.lua`, `statistics.sqlite3`, all `*.sdr/` sidecars. **Off by default** —
   KOReader is installed but unused.
-- [ ] **V4** Back up `.kobo/Kobo/Kobo eReader.conf` (never restored wholesale, H4)
-- [ ] **V5** Write `manifest.json` (K8) with sha256 for every file
-- [ ] **V6** `verify` — re-hash against manifest, `PRAGMA integrity_check` on each SQLite
+- [x] **V4** Back up `.kobo/Kobo/Kobo eReader.conf` (never restored wholesale, H4)
+- [x] **V5** Write `manifest.json` (K8) with sha256 for every file
+- [x] **V6** `verify` — re-hash against manifest, `PRAGMA integrity_check` on each SQLite
   copy; only `verify` success marks `Phase.VERIFIED`
 - [ ] **V7** Keep the **currently installed firmware zip** alongside the backup (fallback
   for a reflash of the same version)
@@ -100,9 +100,9 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 
 ## export-stats (vault subcommand)
 
-- [ ] **S1** Export native Kobo stats (`Event`, `content` reading-time columns) to CSV/JSON
+- [x] **S1** Export native Kobo stats (`Event`, `content` reading-time columns) to CSV/JSON
 - [ ] **S2** (optional) Export KOReader stats (`book`, `page_stat_data`) to CSV/JSON
-- [ ] **S3** Run automatically at the end of `snapshot` — stats survive even if restore fails
+- [x] **S3** Run automatically at the end of `snapshot` — stats survive even if restore fails
 - [ ] **S4** (M) Match device books to Calibre (`metadata.db`, read-only) by title/author/UUID
 - [ ] **S5** (M) Push per-book stats into the existing Calibre custom columns (write via
   `calibredb set_custom`, never direct SQL on `metadata.db`)
@@ -204,7 +204,7 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 ## CI / DevOps
 
 - [x] **CI1** Device tests marked `@pytest.mark.device`, never run in CI
-- [ ] **CI2** Fake-Kobo fixture tree with a real (tiny) `KoboReader.sqlite` schema for V9 tests
+- [x] **CI2** Fake-Kobo fixture tree with a real (tiny) `KoboReader.sqlite` schema for V9 tests
 - [x] **CI3** Lint is a real gate from day one (no `|| true`)
 - [ ] **CI4** Coverage threshold gate
 
@@ -219,12 +219,19 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 
 ## Execution order
 
-1. **K9 + K6** shared CLI helpers and `--hardware`
-2. **K8, K11, V1–V6, S1, S3, V12** — snapshot/verify on 4.46.
-   **Nothing writes to the device before a verified backup.**
-3. **K10 → M1 → M9 → M11** — NickelMenu 0.6.0 + wizard (restores the KOReader/Plato
-   launchers broken by 4.46), then SSH
-4. unmod (U7) / flasher 4.x / restore / M10 KOReader wizard / catalogue / F6 `watch`
+**Theory first, practice last.** Every write path (unmod, flasher, restore, modder) is
+built and tested against fake device trees only. Against the real Kobo, only read-only
+commands run (`vault snapshot|verify|export-stats`, `--dry-run`). The real run — unmod,
+flash, restore, mods — happens in one go once the whole pipeline is implemented.
+
+1. ✅ **K9 + K6** shared CLI helpers and `--hardware`
+2. ✅ **K8, K11, V1–V6, S1, S3** — snapshot/verify (first real backup taken on 4.46,
+   read-only)
+3. **K10 → M1 → M9 → M11** — mod matrix, NickelMenu 0.6.0 + wizard (fixes the
+   KOReader/Plato launchers broken by 4.46), SSH — fake devices only
+4. **U1–U7 → F1–F6 → V7–V11, V12** — unmod, flasher 4.x + `watch`, restore — fake devices only
+5. **M10, M12–M15** — KOReader wizard, catalogue
+6. 🎯 **Practice**: real run of the safe path on the device
 
 ---
 
