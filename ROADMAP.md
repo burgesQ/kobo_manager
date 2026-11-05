@@ -61,7 +61,7 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 - [x] **K9** (S) **Shared CLI helpers** `kobocore.cli`: `CLIError`, `add_common_args()`
   (`--mount`, `--dry-run`, `--hardware`, logging), `resolve_device()`, `check_phase()` —
   removes the four copies in `vault|unmod|flasher|modder`
-- [ ] **K10** (M) **Mod compatibility matrix** `kobocore/data/mods.toml` (stdlib
+- [x] **K10** (M) **Mod compatibility matrix** `kobocore/data/mods.toml` (stdlib
   `tomllib`): per mod → firmware lines, launcher, install paths, uninstall method, upstream
   repo, `experimental` flag. Single source of truth for `unmod`, `modder`, `flasher watch`.
 - [x] **K11** (S) Pending-update detector (H5) + `.kobo/version` field 5 (device id) parsing
@@ -140,7 +140,7 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
 
 ### Core
 
-- [ ] **M1** Install / upgrade NickelMenu (`KoboRoot.tgz` into `.kobo/`) — **v0.5.4 → v0.6.0**;
+- [x] **M1** Install / upgrade NickelMenu (`KoboRoot.tgz` into `.kobo/`) — **v0.5.4 → v0.6.0**;
   handle the `.tar` vs `.tgz` naming trap from upstream downloads
 - [ ] **M2** Install/upgrade KOReader into `.adds/koreader/` by **merge** (keep
   `settings/`, `patches/`, `icons/`, third-party plugins)
@@ -148,14 +148,14 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
   does not index `.adds/` and KOReader dirs (already set on the device)
 - [ ] **M5** Screensaver packs: copy user-supplied images (`assets/screensavers/<pack>/`)
 - [ ] **M6** (spike) Transparent sleep screen on 4.46 (native setting vs patch vs NickelMenu)
-- [ ] **M8** Compatibility check before install, driven by `mods.toml` (K10)
-- [ ] **M17** CLI shape: `modder list` (installed vs matrix) · `modder install <mod>…` ·
+- [x] **M8** Compatibility check before install, driven by `mods.toml` (K10)
+- [x] **M17** CLI shape: `modder list` (installed vs matrix) · `modder install <mod>…` ·
   `modder wizard <name>`; stdlib `input()` prompts, `--non-interactive --config
   modder.toml` to replay; user config in `~/.config/kobo_manager/modder.toml`
 
 ### Wizards
 
-- [ ] **M9** **NickelMenu wizard** (replaces M4). Ships a cleaned template split by feature
+- [x] **M9** **NickelMenu wizard** (replaces M4). Ships a cleaned template split by feature
   (`.adds/nm/kobo_manager_{footer,launchers,network,power,library,reader,browser,debug}`),
   migrates the existing `qconf` (backed up, then disabled). Only emits syntax Nickelite
   also accepts. Decisions from the 2026-11-04 config review:
@@ -179,10 +179,24 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
   [SimpleUI](https://github.com/doctorhetfield-cmd/simpleui.koplugin),
   [Project: Title](https://github.com/joshuacant/ProjectTitle) (+ its fonts/icons) —
   user patches into `koreader/patches/`, "Start with" folder
-- [ ] **M11** **SSH**: `modder ssh enable|disable|status`. Spike first: identify what
-  ships `.kobo/ssh-disabled` (rename to `ssh-enabled` + reboot) and the dropbear in use.
-  Install `authorized_keys` from `~/.ssh/*.pub`, disable password login, NickelMenu toggle.
-  KOReader's SSH plugin (port 2222, only while KOReader runs) is the fallback.
+- [x] **M11** **SSH**: `modder ssh status|enable|disable|keys` + NickelMenu status/toggle.
+  `.kobo/ssh-disabled` is (re)created at boot by `/etc/init.d/ssh` (KoboStuff dropbear)
+  unless `ssh-enabled` exists; toggling needs a reboot. Keys go to KOReader's SSH plugin
+  (`settings/SSH/authorized_keys`, port 2222) and are staged in
+  `.adds/kobo_manager/ssh/authorized_keys`.
+- [ ] **M11b** (spike, needs SSH on the device) **Authenticated root SSH**, user picks
+  `modder ssh auth key|password` (default `key`). Everything runs as `root` (Nickel too,
+  `/mnt/onboard` is FAT: no per-user permissions); `cat /etc/passwd` during the spike to
+  confirm there is no other usable account.
+  - both modes: drop dropbear's `-n` (no password check) in
+    `/usr/local/stuff/bin/stuff-daemons.sh` (H7)
+  - `key`: copy the staged keys to the system dropbear's `authorized_keys` (expected
+    `/usr/local/niluje/usbnet/etc/authorized_keys`, to confirm) and add `-s` (no
+    password logins)
+  - `password`: `passwd root`, then create `/.login_pass_set` so `/etc/init.d/ssh`
+    stops wiping the root password at boot
+  - delivered as one-shot NickelMenu actions (rootfs is not reachable over USB); must be
+    re-applied after a firmware update
 
 ### Catalogue (entries in `mods.toml`)
 

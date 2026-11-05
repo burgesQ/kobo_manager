@@ -1,0 +1,132 @@
+# Mod compatibility matrix (ROADMAP K10) — single source of truth for unmod, modder
+# and `flasher watch`. Paths are relative to the device mount.
+#
+# kind          nickel-mod (KoboRoot.tgz into .kobo/), app (own dir + launcher),
+#               koreader-plugin (under .adds/koreader/plugins/), daemon
+# lines         firmware majors the mod is known to work on
+# detect        any of these paths present => installed
+# remove        paths/globs unmod deletes
+# uninstall_create / uninstall_delete   marker the mod watches for self-removal
+# launch        command NickelMenu runs (cmd_spawn) to start an app
+# keep          unmod leaves it in place
+# version/package/package_marker/sha256 pinned release asset for `modder install`
+
+[nickelmenu]
+name = "NickelMenu"
+kind = "nickel-mod"
+lines = [4]
+upstream = "pgaskin/NickelMenu"
+detect = [".adds/nm"]
+uninstall_create = ".adds/nm/uninstall"
+version = "0.6.0"
+package = "KoboRoot.tgz"
+package_marker = "usr/local/Kobo/imageformats/libnm.so"
+sha256 = "322ff9aa863860e8f5f7e0b55cae561c54bf95983b9bce1d19819d1225d064af"
+notes = "No 5.x/6.x support (draft Qt6 PR #240). Config files live in .adds/nm/."
+
+[kfmon]
+name = "KFMon"
+kind = "daemon"
+lines = [4, 5, 6]
+upstream = "NiLuJe/kfmon"
+detect = [".adds/kfmon"]
+remove = [".adds/kfmon", "koreader.png", "plato.png", "kfmon.png"]
+notes = "Disabled by firmware updates. KOReader launched via KFMon freezes on Libra Colour 4.46 (koreader#16333)."
+
+[koreader]
+name = "KOReader"
+kind = "app"
+lines = [4, 5, 6]
+upstream = "koreader/koreader"
+detect = [".adds/koreader"]
+launch = "/mnt/onboard/.adds/koreader/koreader.sh"
+keep = true
+notes = "Emergency reader, independent of Nickel (ROADMAP U5). kobov5 builds are beta."
+
+[plato]
+name = "Plato"
+kind = "app"
+lines = [4]
+upstream = "baskerville/plato"
+detect = [".adds/plato"]
+remove = [".adds/plato"]
+launch = "/mnt/onboard/.adds/plato/plato.sh"
+
+[nickelclock]
+name = "NickelClock"
+kind = "nickel-mod"
+lines = [4]
+upstream = "shermp/NickelClock"
+detect = [".adds/nickelclock"]
+uninstall_delete = ".adds/nickelclock/uninstall"
+notes = "Self-removes when the `uninstall` file is DELETED (inverse of NickelMenu)."
+
+[nickeldbus]
+name = "NickelDBus"
+kind = "nickel-mod"
+lines = [4]
+upstream = "shermp/NickelDBus"
+detect = [".adds/nickeldbus"]
+notes = "Install/uninstall paths to confirm before automating (ROADMAP M14)."
+
+[rakuyomi]
+name = "Rakuyomi"
+kind = "koreader-plugin"
+lines = [4]
+upstream = "tachibana-shin/rakuyomi"
+detect = [".adds/koreader/plugins/rakuyomi.koplugin"]
+remove = [".adds/koreader/plugins/rakuyomi.koplugin", ".adds/koreader/rakuyomi"]
+notes = "Upstream hanatsumi/rakuyomi archived 2026-01; Kindle vs KindleHF build to confirm."
+
+[appearance]
+name = "appearance.koplugin"
+kind = "koreader-plugin"
+lines = [4, 5, 6]
+upstream = "Euphoriyy/appearance.koplugin"
+detect = [".adds/koreader/plugins/appearance.koplugin"]
+remove = [".adds/koreader/plugins/appearance.koplugin"]
+notes = "One-tap KOReader themes."
+
+[simpleui]
+name = "SimpleUI"
+kind = "koreader-plugin"
+lines = [4, 5, 6]
+upstream = "doctorhetfield-cmd/simpleui.koplugin"
+detect = [".adds/koreader/plugins/simpleui.koplugin"]
+remove = [".adds/koreader/plugins/simpleui.koplugin"]
+
+[projecttitle]
+name = "Project: Title"
+kind = "koreader-plugin"
+lines = [4, 5, 6]
+upstream = "joshuacant/ProjectTitle"
+detect = [".adds/koreader/plugins/projecttitle.koplugin"]
+remove = [".adds/koreader/plugins/projecttitle.koplugin"]
+notes = "Release tags are pinned to the KOReader version; ships its own fonts/icons."
+
+[ultimatemangareader]
+name = "UltimateMangaReader"
+kind = "app"
+lines = [4]
+upstream = "Rain92/UltimateMangaReader"
+detect = [".adds/UltimateMangaReader"]
+remove = [".adds/UltimateMangaReader", ".adds/qt-6.*-kobo", ".adds/nm/_umr_conf"]
+launch = "/mnt/onboard/.adds/UltimateMangaReader/ultimatemangareader.sh"
+experimental = true
+notes = "3.0.0 (Qt6 rewrite): greyscale only, Libra Colour untested."
+
+[banana]
+name = "Banana Manga Reader"
+kind = "app"
+lines = [4]
+upstream = "mobileread:p=4333172"
+experimental = true
+notes = "Inactive since ~2023; install paths unknown."
+
+[nickelite]
+name = "Nickelite"
+kind = "nickel-mod"
+lines = [5, 6]
+upstream = "open-source-arena/Nickelite"
+experimental = true
+notes = "NickelMenu successor for 5.x/6.x, exact-firmware pinned .kobo/Kobo.tgz. Dormant while on 4.x."
