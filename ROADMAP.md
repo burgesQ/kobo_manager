@@ -184,10 +184,19 @@ Plato, NickelClock. Nickel DB `DbVersion=176`.
   unless `ssh-enabled` exists; toggling needs a reboot. Keys go to KOReader's SSH plugin
   (`settings/SSH/authorized_keys`, port 2222) and are staged in
   `.adds/kobo_manager/ssh/authorized_keys`.
-- [ ] **M11b** (spike, needs SSH on the device) Find the system dropbear's
-  `authorized_keys` path and its `-n` (no password check) flag in
-  `/usr/local/stuff/bin/stuff-daemons.sh`; add a NickelMenu action that copies the staged
-  keys there and drops `-n` (H7).
+- [ ] **M11b** (spike, needs SSH on the device) **Authenticated root SSH**, user picks
+  `modder ssh auth key|password` (default `key`). Everything runs as `root` (Nickel too,
+  `/mnt/onboard` is FAT: no per-user permissions); `cat /etc/passwd` during the spike to
+  confirm there is no other usable account.
+  - both modes: drop dropbear's `-n` (no password check) in
+    `/usr/local/stuff/bin/stuff-daemons.sh` (H7)
+  - `key`: copy the staged keys to the system dropbear's `authorized_keys` (expected
+    `/usr/local/niluje/usbnet/etc/authorized_keys`, to confirm) and add `-s` (no
+    password logins)
+  - `password`: `passwd root`, then create `/.login_pass_set` so `/etc/init.d/ssh`
+    stops wiping the root password at boot
+  - delivered as one-shot NickelMenu actions (rootfs is not reachable over USB); must be
+    re-applied after a firmware update
 
 ### Catalogue (entries in `mods.toml`)
 
